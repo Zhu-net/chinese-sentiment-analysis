@@ -75,6 +75,7 @@ def export_model(ckpt_path: Path, onnx_path: Path, pretrained_model: str,
         },
         opset_version=14,
         do_constant_folding=True,
+        dynamo=False,  # 传统 TorchScript 导出器：兼容 opset14 的 LayerNormalization 分解
     )
     print(f"  ✓ 已导出: {onnx_path} ({onnx_path.stat().st_size / 1024 / 1024:.1f} MB)")
 
