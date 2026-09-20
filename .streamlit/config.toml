@@ -1,0 +1,17 @@
+[theme]
+base = "light"
+# 主题主色：靛蓝紫（高级感）
+primaryColor = "#6C5CE7"
+# 页面背景：柔和的浅蓝紫白
+backgroundColor = "#F7F9FE"
+# 侧边栏/组件背景：纯白
+secondaryBackgroundColor = "#FFFFFF"
+# 正文颜色：深灰蓝
+textColor = "#2D3142"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

@@ -1,0 +1,31 @@
+# ===== 私密配置（绝不入库）=====
+.env
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# ===== 模型权重与大文件（训练产出，不入库）=====
+saved_models/
+*.pt
+*.onnx
+*.onnx.data
+
+# ===== 数据与运行时产物（可由脚本重建）=====
+data/
+logs/
+mlruns/
+outputs/
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+
+# ===== IDE / 系统 =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

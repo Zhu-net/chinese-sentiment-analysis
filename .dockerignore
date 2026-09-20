@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# 数据（太大，不放入镜像）
+data/raw/
+data/processed/*.csv
+
+# 日志
+logs/
+
+# IDE
+.vscode/
+.idea/
+.ipynb_checkpoints/
+
+# Git
+.git/
+.gitignore
+
+# 模型权重中仅排除预训练模型（启动时自动下载），保留微调后的权重
+saved_models/bert-base-chinese/
+saved_models/bert_tokenizer/
+saved_models/textcnn_best.pt
+saved_models/bilstm_best.pt
+saved_models/tfidf_lr.pkl
+
+# 文档
+*.md
+notebooks/

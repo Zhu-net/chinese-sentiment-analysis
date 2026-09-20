@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  sentiment-api:
+    build: .
+    container_name: sentiment-analysis-api
+    ports:
+      - "8000:8000"
+    environment:
+      - HF_ENDPOINT=https://hf-mirror.com
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # 如需使用 GPU，取消下面注释（需安装 nvidia-docker）
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

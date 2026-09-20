@@ -1,0 +1,80 @@
+# ========== 项目全局配置 ==========
+project:
+  name: "chinese-sentiment-analysis"
+  version: "1.0.0"
+  seed: 42  # 随机种子，保证实验可复现
+
+# ========== 数据配置 ==========
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"              # 二分类（外卖评论）
+  processed_dir_emotion: "data/processed_emotion"  # 情绪6分类（微博）
+  # 数据集划分比例
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  # 文本最大长度（BERT 输入）
+  max_length: 128
+
+# ========== 模型配置 ==========
+model:
+  # 预训练模型（优先使用本地路径，避免网络问题）
+  pretrained_model: "saved_models/bert-base-chinese"
+  num_labels: 2  # 二分类：正面 / 负面
+  dropout: 0.1
+
+# ========== 情绪多分类任务配置 ==========
+emotion:
+  num_labels: 6
+  # ID 顺序 = 模型输出顺序，与 prepare_emotion_data.py 保持一致
+  labels: ["happy", "grateful", "sad", "angry", "fear", "anxious"]
+  labels_cn: ["开心", "感激", "悲伤", "愤怒", "恐惧", "焦虑"]
+  emojis: ["😄", "🙏", "😢", "😠", "😨", "😰"]
+  # 情绪 -> 极性映射（供 API 兼容二分类的正/负面语义）
+  polarity:
+    happy: "正面"
+    grateful: "正面"
+    sad: "负面"
+    angry: "负面"
+    fear: "负面"
+    anxious: "负面"
+  # 情绪主题色（前端渐变卡片/图表用）
+  colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#8B5CF6", "#EC4899"]
+  model_file: "bert_emotion_best.pt"
+  tokenizer_dir: "bert_emotion_tokenizer"
+
+# ========== 训练配置 ==========
+train:
+  batch_size: 16
+  epochs: 5
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  # 早停
+  early_stopping_patience: 3
+  # 日志与保存
+  log_dir: "logs"
+  save_dir: "saved_models"
+  logging_steps: 50
+
+# ========== 部署配置 ==========
+deploy:
+  host: "0.0.0.0"
+  port: 8000
+  model_path: "saved_models/best_model"
+
+# ========== 应用层配置（历史存储 / 长文本分析）==========
+app:
+  # SQLite 唯一权威路径（历史记录与纠错样本均存于此）
+  db_path: "data/app/history.db"
+  # 单条原文入库最大长度（超出截断）
+  max_input_store_len: 500
+  long_text:
+    # 长文本切句后参与分析的最大句数
+    max_sentences: 100
+    # 短于此长度的句子直接丢弃
+    min_sentence_len: 2
+  feedback:
+    # 纠错样本导出目录（CSV 列与 data/processed_emotion/train.csv 对齐）
+    export_dir: "data/feedback"
