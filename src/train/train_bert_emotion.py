@@ -25,6 +25,12 @@ from transformers import AutoTokenizer, get_cosine_schedule_with_warmup
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 from src.utils import load_config
 from src.models.bert_dataset import BERTDataset
 from src.models.bert_classifier import BERTClassifier
@@ -78,9 +84,10 @@ def main():
     max_len = cfg["data"]["max_length"]
 
     # ===== 1. 数据 =====
-    train_df = pd.read_csv(data_dir / "train.csv")
-    val_df = pd.read_csv(data_dir / "val.csv")
-    test_df = pd.read_csv(data_dir / "test.csv")
+    # 使用 train+test 标签修正后数据（清洗 + test 278条 + train 833条核验修正）
+    train_df = pd.read_csv(data_dir / "train_augmented_v2_cleaned_fixed2.csv")
+    val_df = pd.read_csv(data_dir / "val_cleaned_fixed.csv")
+    test_df = pd.read_csv(data_dir / "test_cleaned_fixed_anx.csv")  # 含焦虑标签修正
     print(f"数据: train={len(train_df)}, val={len(val_df)}, test={len(test_df)}")
 
     # ===== 2. Tokenizer / Dataset =====
@@ -105,6 +112,7 @@ def main():
     test_loader = DataLoader(test_ds, batch_size=cfg["train"]["batch_size"], shuffle=False, num_workers=0)
 
     # ===== 4. 模型（分类头 dropout 略调大，缓解少数类重复采样过拟合）=====
+    print("正在初始化模型...")
     model = BERTClassifier(
         pretrained_model_name=pretrained_model,
         num_classes=num_classes,
@@ -112,9 +120,11 @@ def main():
     ).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"模型参数量: {total_params:,}")
+    print("模型初始化完成")
 
     # ===== 5. 优化器 / 调度 / 损失 =====
     # sampler 已做类均衡，loss 不再加权重，避免双重补偿
+    print("正在配置优化器...")
     criterion = nn.CrossEntropyLoss()
     head_params = list(model.classifier.parameters()) + list(model.dropout.parameters())
     bert_params = list(model.bert.parameters())
@@ -127,6 +137,7 @@ def main():
     warmup_steps = int(total_steps * cfg["train"]["warmup_ratio"])
     scheduler = get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps)
     print(f"总步数: {total_steps}, Warmup: {warmup_steps}")
+    print("优化器配置完成")
 
     # ===== 6. 训练循环（以 macro-F1 选模）=====
     save_dir = Path(cfg["train"]["save_dir"])
@@ -158,9 +169,9 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "pretrained_model": pretrained_model,
                 "config": {"num_classes": num_classes, "max_len": max_len, "dropout": 0.15},
-            }, save_dir / ecfg["model_file"])
+            }, save_dir / ecfg["model_file_fixed2"])
             tokenizer.save_pretrained(save_dir / ecfg["tokenizer_dir"])
-            print(f"  ✓ macro-F1 提升，模型已保存")
+            print(f"  [OK] macro-F1 提升，模型已保存")
         else:
             patience += 1
             if patience >= cfg["train"]["early_stopping_patience"]:
@@ -170,7 +181,7 @@ def main():
     print(f"训练完成，最佳验证 macro-F1: {best_macro_f1:.4f}")
 
     # ===== 7. 测试集评估 =====
-    checkpoint = torch.load(save_dir / ecfg["model_file"], map_location=device, weights_only=False)
+    checkpoint = torch.load(save_dir / ecfg["model_file_fixed2"], map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model_state_dict"])
     _, test_preds, test_labels = run_epoch(model, test_loader, criterion, device)
     results = evaluate(

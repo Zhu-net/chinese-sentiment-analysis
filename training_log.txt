@@ -1,0 +1,69 @@
+Ê¹ÓÃÉè±¸: cuda
+GPU: NVIDIA GeForce RTX 4060 Laptop GPU
+Êý¾Ý: train=35605, val=4438, test=4439
+ÑµÁ·¼¯Àà±ðÆµ´Î: {'¿ªÐÄ': 13041, '¸Ð¼¤': 721, '±¯ÉË': 7317, '·ßÅ­': 12636, '¿Ö¾å': 1525, '½¹ÂÇ': 365}
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨€| 199/199 [00:00<00:00, 49789.22it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: saved_models/bert-base-chinese
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Ä£ÐÍ²ÎÊýÁ¿: 102,272,262
+×Ü²½Êý: 11130, Warmup: 1113
+
+¿ªÊ¼ÑµÁ·ÇéÐ÷·ÖÀàÄ£ÐÍ£¨¹² 5 epoch£©...
+------------------------------------------------------------------------------
+Epoch 1/5 | Train Loss 0.5731 | Val Acc 0.7319 macroF1 0.6951 weightedF1 0.7294 | LR 1.94e-05 | 15069s
+  [OK] macro-F1 ÌáÉý£¬Ä£ÐÍÒÑ±£´æ
+Epoch 2/5 | Train Loss 0.2888 | Val Acc 0.7970 macroF1 0.7481 weightedF1 0.7993 | LR 1.50e-05 | 453s
+  [OK] macro-F1 ÌáÉý£¬Ä£ÐÍÒÑ±£´æ
+Epoch 3/5 | Train Loss 0.2096 | Val Acc 0.7963 macroF1 0.7657 weightedF1 0.8014 | LR 8.26e-06 | 454s
+  [OK] macro-F1 ÌáÉý£¬Ä£ÐÍÒÑ±£´æ
+Epoch 4/5 | Train Loss 0.1532 | Val Acc 0.8096 macroF1 0.7699 weightedF1 0.8119 | LR 2.34e-06 | 454s
+  [OK] macro-F1 ÌáÉý£¬Ä£ÐÍÒÑ±£´æ
+Epoch 5/5 | Train Loss 0.1315 | Val Acc 0.8098 macroF1 0.7673 weightedF1 0.8119 | LR 0.00e+00 | 454s
+------------------------------------------------------------------------------
+ÑµÁ·Íê³É£¬×î¼ÑÑéÖ¤ macro-F1: 0.7699
+
+============================================================
+Ä£ÐÍ: BERT-ÇéÐ÷6·ÖÀà (²âÊÔ¼¯)
+============================================================
+×¼È·ÂÊ (Accuracy):  0.8087
+¾«È·ÂÊ (macro):     0.7773
+ÕÙ»ØÂÊ (macro):     0.7865
+F1 ·ÖÊý (macro):    0.7808
+F1 ·ÖÊý (weighted): 0.8106
+
+»ìÏý¾ØÕó:
+Êµ¼Ê£ÜÔ¤²â      ¿ªÐÄ      ¸Ð¼¤      ±¯ÉË      ·ßÅ­      ¿Ö¾å      ½¹ÂÇ
+¿ªÐÄ          1452       1     104      62      14       3
+¸Ð¼¤             2      81       0       0       0       0
+±¯ÉË            83       1     669     125      16       7
+·ßÅ­            78       2     239    1214      24       6
+¿Ö¾å            13       0      24      28     146       2
+½¹ÂÇ             3       0       6       4       2      28
+
+·ÖÀà±¨¸æ:
+              precision    recall  f1-score   support
+
+          ¿ªÐÄ       0.89      0.89      0.89      1636
+          ¸Ð¼¤       0.95      0.98      0.96        83
+          ±¯ÉË       0.64      0.74      0.69       901
+          ·ßÅ­       0.85      0.78      0.81      1563
+          ¿Ö¾å       0.72      0.69      0.70       213
+          ½¹ÂÇ       0.61      0.65      0.63        43
+
+    accuracy                           0.81      4439
+   macro avg       0.78      0.79      0.78      4439
+weighted avg       0.82      0.81      0.81      4439
+
+============================================================

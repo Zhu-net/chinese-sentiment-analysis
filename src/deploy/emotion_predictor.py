@@ -52,10 +52,19 @@ class EmotionPredictor:
         self.labels_cn = self.ecfg["labels_cn"]
         self.emojis = self.ecfg["emojis"]
         self.polarity_map = self.ecfg["polarity"]
+        # RAG 精判开关（config.rag.enabled），refiner 懒加载避免拖累启动
+        self._rag_enabled = cfg.get("rag", {}).get("enabled", False)
+        self._refiner = None
         print(f"情绪模型加载成功，设备: {self.device}")
 
+    def _get_refiner(self):
+        if self._refiner is None:
+            from src.rag.rag_refiner import get_rag_refiner
+            self._refiner = get_rag_refiner()
+        return self._refiner
+
     @torch.no_grad()
-    def predict(self, text: str) -> dict:
+    def predict(self, text: str, use_rag: bool = None) -> dict:
         encoding = self.tokenizer(
             text, truncation=True, padding=True,  # 动态 padding
             max_length=self.max_len, return_tensors="pt",
@@ -80,7 +89,7 @@ class EmotionPredictor:
         ]
 
         emotion_en = self.labels_en[pred_id]
-        return {
+        result = {
             "text": text,
             "emotion": emotion_en,
             "emotion_cn": self.labels_cn[pred_id],
@@ -93,6 +102,15 @@ class EmotionPredictor:
             },
             "top3": top3,
         }
+
+        # RAG 精判：低置信度时检索相似样本 + LLM 复核（异常自动回退 BERT 结果）
+        rag_on = self._rag_enabled if use_rag is None else use_rag
+        if rag_on:
+            try:
+                result = self._get_refiner().refine(result)
+            except Exception:
+                pass  # 静默回退，保证预测接口始终可用
+        return result
 
     @torch.no_grad()
     def predict_batch(self, texts, batch_size=32, with_probabilities=True) -> list:
