@@ -148,6 +148,54 @@ class EmotionPredictor:
         return results
 
 
+# ===== 三后端统一路由（P1：bert / rag / lora）=====
+VALID_MODEL_TYPES = ("bert", "rag", "lora")
+
+
+def predict_routed(text: str, model_type: str = "bert") -> dict:
+    """单条情绪预测路由。lora 非法 JSON 时按配置回退 BERT（零结果保证）。"""
+    if model_type not in VALID_MODEL_TYPES:
+        raise ValueError(f"model_type 必须是 {VALID_MODEL_TYPES}，得到 {model_type!r}")
+
+    ep = get_emotion_predictor()
+    if model_type == "bert":
+        result = ep.predict(text, use_rag=False)
+        result["model_type"] = "bert"
+        return result
+    if model_type == "rag":
+        result = ep.predict(text, use_rag=True)
+        result["model_type"] = "rag"
+        return result
+
+    # lora（懒加载，模型缺失时抛错由上层处理）
+    from src.deploy.lora_predictor import get_lora_predictor
+    from src.utils import load_config
+    result = get_lora_predictor().predict(text)
+    if not result.get("valid_json") and \
+            load_config().get("llm_finetune", {}).get("fallback_to_bert", True):
+        fallback = ep.predict(text, use_rag=False)
+        fallback["model_type"] = "lora_fallback_bert"
+        fallback["lora_raw_reason"] = result.get("reason", "")
+        return fallback
+    return result
+
+
+def predict_batch_routed(texts: list, model_type: str = "bert") -> list:
+    """批量情绪预测路由。rag 为逐条 API 精判（慢），bert/lora 为本地批量。"""
+    if model_type not in VALID_MODEL_TYPES:
+        raise ValueError(f"model_type 必须是 {VALID_MODEL_TYPES}，得到 {model_type!r}")
+    ep = get_emotion_predictor()
+    if model_type == "bert":
+        results = ep.predict_batch(texts)
+        for r in results:
+            r["model_type"] = "bert"
+        return results
+    if model_type == "lora":
+        from src.deploy.lora_predictor import get_lora_predictor
+        return get_lora_predictor().predict_batch(texts)
+    return [ep.predict(str(t), use_rag=True) for t in texts]
+
+
 # 全局单例
 _emotion_predictor = None
 

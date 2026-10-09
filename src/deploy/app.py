@@ -22,7 +22,7 @@ FastAPI 服务
 import os
 import sys
 from pathlib import Path
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Literal, Optional
 
 from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -31,7 +31,9 @@ from pydantic import BaseModel, Field
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from src.deploy.predictor import get_predictor
-from src.deploy.emotion_predictor import get_emotion_predictor
+from src.deploy.emotion_predictor import (
+    get_emotion_predictor, predict_routed, predict_batch_routed,
+)
 from src.deploy.long_text import analyze_long_text
 from src.storage import history as history_store
 
@@ -57,6 +59,9 @@ TextField = Annotated[str, Field(min_length=1, max_length=MAX_TEXT_LEN,
 
 class PredictRequest(BaseModel):
     text: TextField
+    # 情绪6分类后端选择（二分类/长文本接口忽略此字段）：
+    # bert=本地 BERT（默认，零回归），rag=BERT+DeepSeek 检索精判，lora=QLoRA 生成式
+    model_type: Literal["bert", "rag", "lora"] = "bert"
 
 
 class BatchPredictRequest(BaseModel):
@@ -64,6 +69,7 @@ class BatchPredictRequest(BaseModel):
         ..., min_length=1, max_length=MAX_BATCH_ITEMS,
         description=f"待分析的文本列表（≤{MAX_BATCH_ITEMS} 条）",
     )
+    model_type: Literal["bert", "rag", "lora"] = "bert"
 
 
 class FeedbackRequest(BaseModel):
@@ -121,21 +127,26 @@ async def predict_batch(request: BatchPredictRequest):
 
 
 # ===== 情绪 6 分类接口 =====
-@app.post("/predict_emotion", summary="单条情绪预测（6类 + Top3 + 自动存档）", tags=["情绪6分类"])
+@app.post("/predict_emotion", summary="单条情绪预测（6类 + Top3 + 自动存档，可选 model_type）", tags=["情绪6分类"])
 async def predict_emotion(request: PredictRequest):
     try:
-        result = get_emotion_predictor().predict(request.text)
+        result = predict_routed(request.text, request.model_type)
         result["record_id"] = history_store.add_record("emotion", request.text, result)
         return result
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"情绪预测失败: {str(e)}")
 
 
-@app.post("/predict_emotion_batch", summary="批量情绪预测（6类）", tags=["情绪6分类"])
+@app.post("/predict_emotion_batch", summary="批量情绪预测（6类，可选 model_type）", tags=["情绪6分类"])
 async def predict_emotion_batch(request: BatchPredictRequest):
     try:
-        results = get_emotion_predictor().predict_batch(request.texts)
-        return {"results": results, "total": len(results)}
+        results = predict_batch_routed(request.texts, request.model_type)
+        return {"results": results, "total": len(results),
+                "model_type": request.model_type}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"批量情绪失败: {str(e)}")
 

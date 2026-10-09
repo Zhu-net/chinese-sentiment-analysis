@@ -1,0 +1,434 @@
+{
+  "lora": {
+    "model": "saved_models/qwen15b_emotion_merged",
+    "full": {
+      "n_labeled": 4318,
+      "n_total": 4318,
+      "acc": 0.8101,
+      "acc_ci95": [
+        0.799,
+        0.8217
+      ],
+      "macro_f1": 0.695,
+      "macro_f1_ci95": [
+        0.6725,
+        0.7165
+      ],
+      "per_class_f1": {
+        "开心": 0.8789,
+        "感激": 0.8721,
+        "悲伤": 0.7637,
+        "愤怒": 0.836,
+        "恐惧": 0.601,
+        "焦虑": 0.2185
+      },
+      "valid_json_rate": 0.9991,
+      "latency_single": {
+        "n": 300,
+        "p50_ms": 644.0,
+        "p95_ms": 3674.7,
+        "mean_ms": 860.3
+      },
+      "peak_vram_gb": 2.9
+    },
+    "hard": {
+      "n_labeled": 252,
+      "n_total": 252,
+      "acc": 0.627,
+      "acc_ci95": [
+        0.5675,
+        0.6865
+      ],
+      "macro_f1": 0.3416,
+      "macro_f1_ci95": [
+        0.2594,
+        0.4131
+      ],
+      "per_class_f1": {
+        "开心": 0.4286,
+        "感激": 0.0,
+        "悲伤": 0.7866,
+        "愤怒": 0.382,
+        "恐惧": 0.1481,
+        "焦虑": 0.3043
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 252,
+        "p50_ms": 3692.3,
+        "p95_ms": 4639.0,
+        "mean_ms": 2945.7
+      },
+      "peak_vram_gb": 2.9
+    },
+    "adv": {
+      "n_labeled": 34,
+      "n_total": 50,
+      "acc": 0.8824,
+      "acc_ci95": [
+        0.7647,
+        0.9706
+      ],
+      "macro_f1": 0.887,
+      "macro_f1_ci95": [
+        0.5932,
+        0.9761
+      ],
+      "per_class_f1": {
+        "开心": 0.8889,
+        "感激": 1.0,
+        "悲伤": 0.8571,
+        "愤怒": 0.9091,
+        "恐惧": 1.0,
+        "焦虑": 0.6667
+      },
+      "valid_json_rate": 1.0,
+      "neutral_n": 16,
+      "neutral_overfire_rate": 1.0,
+      "neutral_pred_dist": {
+        "开心": 9,
+        "愤怒": 4,
+        "悲伤": 3
+      },
+      "latency_single": {
+        "n": 50,
+        "p50_ms": 506.1,
+        "p95_ms": 596.5,
+        "mean_ms": 517.2
+      },
+      "peak_vram_gb": 2.89
+    },
+    "user24": {
+      "n_labeled": 24,
+      "n_total": 24,
+      "acc": 1.0,
+      "acc_ci95": [
+        1.0,
+        1.0
+      ],
+      "macro_f1": 1.0,
+      "macro_f1_ci95": [
+        0.8333,
+        1.0
+      ],
+      "per_class_f1": {
+        "开心": 1.0,
+        "感激": 1.0,
+        "悲伤": 1.0,
+        "愤怒": 1.0,
+        "恐惧": 1.0,
+        "焦虑": 1.0
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 24,
+        "p50_ms": 522.6,
+        "p95_ms": 2419.8,
+        "mean_ms": 834.7
+      },
+      "peak_vram_gb": 2.89
+    },
+    "reason_quality": {
+      "n": 100,
+      "label_reason_consistency": 0.72,
+      "hallucination_rate": 0.13,
+      "length_compliance": 0.96
+    }
+  },
+  "bert": {
+    "full": {
+      "n_labeled": 4318,
+      "n_total": 4318,
+      "acc": 0.8467,
+      "acc_ci95": [
+        0.8351,
+        0.8578
+      ],
+      "macro_f1": 0.8229,
+      "macro_f1_ci95": [
+        0.8008,
+        0.8422
+      ],
+      "per_class_f1": {
+        "开心": 0.8907,
+        "感激": 0.9818,
+        "悲伤": 0.7641,
+        "愤怒": 0.8665,
+        "恐惧": 0.745,
+        "焦虑": 0.6891
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 300,
+        "p50_ms": 34.5,
+        "p95_ms": 42.5,
+        "mean_ms": 35.4
+      },
+      "peak_vram_gb": 0.39
+    },
+    "hard": {
+      "n_labeled": 252,
+      "n_total": 252,
+      "acc": 0.5079,
+      "acc_ci95": [
+        0.4444,
+        0.5635
+      ],
+      "macro_f1": 0.2826,
+      "macro_f1_ci95": [
+        0.1903,
+        0.3762
+      ],
+      "per_class_f1": {
+        "开心": 0.0,
+        "感激": 0.0,
+        "悲伤": 0.658,
+        "愤怒": 0.2069,
+        "恐惧": 0.4,
+        "焦虑": 0.4308
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 252,
+        "p50_ms": 33.6,
+        "p95_ms": 41.0,
+        "mean_ms": 33.2
+      },
+      "peak_vram_gb": 0.39
+    },
+    "adv": {
+      "n_labeled": 34,
+      "n_total": 50,
+      "acc": 0.6176,
+      "acc_ci95": [
+        0.4412,
+        0.7647
+      ],
+      "macro_f1": 0.7085,
+      "macro_f1_ci95": [
+        0.4044,
+        0.8019
+      ],
+      "per_class_f1": {
+        "开心": 0.6087,
+        "感激": 1.0,
+        "悲伤": 0.7273,
+        "愤怒": 0.4706,
+        "恐惧": 1.0,
+        "焦虑": 0.4444
+      },
+      "valid_json_rate": 1.0,
+      "neutral_n": 16,
+      "neutral_overfire_rate": 1.0,
+      "neutral_pred_dist": {
+        "开心": 10,
+        "愤怒": 4,
+        "悲伤": 1,
+        "焦虑": 1
+      },
+      "latency_single": {
+        "n": 50,
+        "p50_ms": 32.5,
+        "p95_ms": 40.5,
+        "mean_ms": 32.4
+      },
+      "peak_vram_gb": 0.39
+    },
+    "user24": {
+      "n_labeled": 24,
+      "n_total": 24,
+      "acc": 0.4583,
+      "acc_ci95": [
+        0.2917,
+        0.6667
+      ],
+      "macro_f1": 0.4138,
+      "macro_f1_ci95": [
+        0.2011,
+        0.5848
+      ],
+      "per_class_f1": {
+        "开心": 0.6667,
+        "感激": 0.0,
+        "悲伤": 0.5714,
+        "愤怒": 0.4,
+        "恐惧": 0.4,
+        "焦虑": 0.4444
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 24,
+        "p50_ms": 34.9,
+        "p95_ms": 49.1,
+        "mean_ms": 35.7
+      },
+      "peak_vram_gb": 0.39
+    }
+  },
+  "rag": {
+    "hard": {
+      "n_labeled": 252,
+      "n_total": 252,
+      "acc": 0.5714,
+      "acc_ci95": [
+        0.5079,
+        0.623
+      ],
+      "macro_f1": 0.3596,
+      "macro_f1_ci95": [
+        0.248,
+        0.4516
+      ],
+      "per_class_f1": {
+        "开心": 0.3636,
+        "感激": 0.0,
+        "悲伤": 0.7074,
+        "愤怒": 0.2586,
+        "恐惧": 0.2857,
+        "焦虑": 0.5424
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 252,
+        "p50_ms": 5.9,
+        "p95_ms": 956.7,
+        "mean_ms": 183.3
+      },
+      "peak_vram_gb": 0.78,
+      "rag_trigger_rate": 0.1905,
+      "rag_trigger_n": 48,
+      "rag_failed_n": 0,
+      "latency_triggered": {
+        "n": 48,
+        "p50_ms": 868.7,
+        "p95_ms": 1091.6,
+        "mean_ms": 847.0
+      }
+    },
+    "adv": {
+      "n_labeled": 34,
+      "n_total": 50,
+      "acc": 0.7353,
+      "acc_ci95": [
+        0.5882,
+        0.8824
+      ],
+      "macro_f1": 0.7751,
+      "macro_f1_ci95": [
+        0.4757,
+        0.8798
+      ],
+      "per_class_f1": {
+        "开心": 0.6957,
+        "感激": 1.0,
+        "悲伤": 0.9231,
+        "愤怒": 0.6316,
+        "恐惧": 1.0,
+        "焦虑": 0.4
+      },
+      "valid_json_rate": 1.0,
+      "neutral_n": 16,
+      "neutral_overfire_rate": 1.0,
+      "neutral_pred_dist": {
+        "开心": 10,
+        "愤怒": 3,
+        "焦虑": 2,
+        "悲伤": 1
+      },
+      "latency_single": {
+        "n": 50,
+        "p50_ms": 6.5,
+        "p95_ms": 871.5,
+        "mean_ms": 169.9
+      },
+      "peak_vram_gb": 0.78,
+      "rag_trigger_rate": 0.2,
+      "rag_trigger_n": 10,
+      "rag_failed_n": 0,
+      "latency_triggered": {
+        "n": 10,
+        "p50_ms": 827.5,
+        "p95_ms": 976.5,
+        "mean_ms": 802.9
+      }
+    },
+    "user24": {
+      "n_labeled": 24,
+      "n_total": 24,
+      "acc": 0.9167,
+      "acc_ci95": [
+        0.7917,
+        1.0
+      ],
+      "macro_f1": 0.9153,
+      "macro_f1_ci95": [
+        0.7222,
+        1.0
+      ],
+      "per_class_f1": {
+        "开心": 0.8889,
+        "感激": 0.8571,
+        "悲伤": 0.8889,
+        "愤怒": 1.0,
+        "恐惧": 0.8571,
+        "焦虑": 1.0
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 24,
+        "p50_ms": 828.2,
+        "p95_ms": 1004.9,
+        "mean_ms": 634.9
+      },
+      "peak_vram_gb": 0.78,
+      "rag_trigger_rate": 0.7083,
+      "rag_trigger_n": 17,
+      "rag_failed_n": 0,
+      "latency_triggered": {
+        "n": 17,
+        "p50_ms": 912.9,
+        "p95_ms": 1009.2,
+        "mean_ms": 881.1
+      }
+    },
+    "full": {
+      "n_labeled": 4318,
+      "n_total": 4318,
+      "acc": 0.8555,
+      "acc_ci95": [
+        0.8448,
+        0.8664
+      ],
+      "macro_f1": 0.7942,
+      "macro_f1_ci95": [
+        0.7718,
+        0.8143
+      ],
+      "per_class_f1": {
+        "开心": 0.9022,
+        "感激": 0.9704,
+        "悲伤": 0.7853,
+        "愤怒": 0.8776,
+        "恐惧": 0.7441,
+        "焦虑": 0.4853
+      },
+      "valid_json_rate": 1.0,
+      "latency_single": {
+        "n": 4318,
+        "p50_ms": 33.4,
+        "p95_ms": 757.4,
+        "mean_ms": 88.0
+      },
+      "peak_vram_gb": 0.78,
+      "rag_trigger_rate": 0.0725,
+      "rag_trigger_n": 313,
+      "rag_failed_n": 0,
+      "latency_triggered": {
+        "n": 313,
+        "p50_ms": 870.2,
+        "p95_ms": 1137.9,
+        "mean_ms": 862.3
+      }
+    }
+  }
+}
