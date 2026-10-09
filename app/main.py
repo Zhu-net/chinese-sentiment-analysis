@@ -18,7 +18,11 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 sys.path.append(str(Path(__file__).resolve().parent))
 
 from src.utils import load_config
-from src.deploy.emotion_predictor import get_emotion_predictor
+from src.deploy.emotion_predictor import (
+    get_emotion_predictor,
+    predict_routed,
+    predict_batch_routed,
+)
 from src.deploy.long_text import analyze_long_text
 from src.storage import history as history_store
 from style import (
@@ -42,6 +46,28 @@ ECFG = CFG["emotion"]
 EMOTION_CN = ECFG["labels_cn"]          # ['开心','感激','悲伤','愤怒','恐惧','焦虑']
 EMOTION_COLORS = ECFG["colors"]         # 6 个主题色
 COLOR_MAP = dict(zip(EMOTION_CN, EMOTION_COLORS))
+
+# 推理后端（P1 QLoRA 三路线）
+BACKEND_OPTIONS = {
+    "🤖 BERT（快 · 35ms）": "bert",
+    "🔍 BERT+RAG 精判（慢 · 触发时调用 DeepSeek）": "rag",
+    "🧠 QLoRA-1.5B 生成式（带理由 · ~0.6s/条）": "lora",
+}
+BACKEND_BADGE = {
+    "bert": "BERT",
+    "rag": "BERT+RAG",
+    "lora": "QLoRA-1.5B",
+    "lora_fallback_bert": "QLoRA→回退BERT",
+}
+
+
+def backend_selector(key: str) -> str:
+    """后端选择控件，返回 model_type 字符串"""
+    label = st.radio(
+        "选择推理后端", list(BACKEND_OPTIONS.keys()),
+        horizontal=True, key=key,
+    )
+    return BACKEND_OPTIONS[label]
 
 
 @st.cache_resource(show_spinner="正在加载情绪模型...")
@@ -244,11 +270,17 @@ def main():
 
             analyze = st.button("✨ 开始识别", type="primary", use_container_width=True,
                                 disabled=not model_ready)
+            backend = backend_selector(key="backend_single")
 
         with right:
             if analyze and text.strip() and model_ready:
-                with st.spinner("🧠 BERT 正在分析情绪..."):
-                    result = predictor.predict(text.strip())
+                spinner_msg = {
+                    "bert": "🤖 BERT 正在分析情绪...",
+                    "rag": "🔍 BERT+RAG 正在精判（触发时约 1 秒）...",
+                    "lora": "🧠 QLoRA-1.5B 正在生成判断与理由（约 1 秒）...",
+                }[backend]
+                with st.spinner(spinner_msg):
+                    result = predict_routed(text.strip(), model_type=backend)
                 # 自动入历史库（反馈闭环数据源）
                 result["record_id"] = history_store.add_record(
                     "emotion", text.strip(), result)
@@ -261,6 +293,19 @@ def main():
                                       result["confidence"], result["polarity"]),
                     unsafe_allow_html=True,
                 )
+                # 后端徽标 + LoRA 生成理由
+                mt = result.get("model_type", "bert")
+                badge = BACKEND_BADGE.get(mt, mt)
+                extra = []
+                if result.get("latency_ms") is not None:
+                    extra.append(f"{result['latency_ms']:.0f}ms")
+                if result.get("valid_json") is not None:
+                    extra.append("JSON✓" if result["valid_json"] else "JSON✗")
+                st.caption(f"推理后端：{badge}" + (f" · {' · '.join(extra)}" if extra else ""))
+                if result.get("reason"):
+                    st.info(f"💬 判定理由：{result['reason']}")
+                if mt == "lora_fallback_bert":
+                    st.warning("⚠️ LoRA 输出非法 JSON，已自动回退 BERT 结果")
             else:
                 st.markdown(
                     """
@@ -273,24 +318,31 @@ def main():
                     unsafe_allow_html=True,
                 )
 
-        # 概率分布 + Top3
+        # 概率分布 + Top3（LoRA 为生成式 one-hot 输出，无概率分布，跳过）
         result = st.session_state.get("emotion_result")
         if analyze and text.strip() and model_ready and result is not None:
-            st.markdown(
-                '<div class="section-title" style="margin-top:18px;"><span class="dot"></span>🎚️ 六类情绪概率分布</div>',
-                unsafe_allow_html=True,
-            )
-            c_map, c_bar = st.columns([1.2, 1], gap="large")
-            with c_map:
-                st.markdown(emotion_prob_rows_html(result["probabilities"]), unsafe_allow_html=True)
-            with c_bar:
-                st.plotly_chart(top3_fig(result["top3"]), use_container_width=True)
+            if result.get("probabilities"):
+                st.markdown(
+                    '<div class="section-title" style="margin-top:18px;"><span class="dot"></span>🎚️ 六类情绪概率分布</div>',
+                    unsafe_allow_html=True,
+                )
+                c_map, c_bar = st.columns([1.2, 1], gap="large")
+                with c_map:
+                    st.markdown(emotion_prob_rows_html(result["probabilities"]), unsafe_allow_html=True)
+                with c_bar:
+                    st.plotly_chart(top3_fig(result["top3"]), use_container_width=True)
+            else:
+                st.caption("🎚️ 生成式后端输出确定性标签（confidence=1.0），无概率分布")
 
             with st.expander("🔍 查看原始 JSON 输出"):
                 st.json({k: v for k, v in result.items() if k != "text"})
 
     # ===== Tab 2: 批量预测 =====
     with tab2:
+        batch_backend = backend_selector(key="backend_batch")
+        if batch_backend != "bert":
+            st.caption("⏱️ 非 BERT 后端逐条约 0.6-1s，批量较大时请耐心等待"
+                       + ("（RAG 仅对低置信样本触发 API）" if batch_backend == "rag" else ""))
         MODE_PASTE = "📝 粘贴文本"
         input_mode = st.radio(
             "选择输入方式", [MODE_PASTE, "📄 上传 CSV 文件"],
@@ -306,7 +358,8 @@ def main():
                 if texts_input.strip():
                     texts = [t.strip() for t in texts_input.split("\n") if t.strip()]
                     with st.spinner(f"正在识别 {len(texts)} 条文本..."):
-                        st.session_state["emo_batch_df"] = pd.DataFrame(predictor.predict_batch(texts))
+                        st.session_state["emo_batch_df"] = pd.DataFrame(
+                            predict_batch_routed(texts, model_type=batch_backend))
                 else:
                     st.warning("请输入文本")
         else:
@@ -318,7 +371,8 @@ def main():
                     if st.button("🚀 开始批量识别", type="primary", disabled=not model_ready):
                         with st.spinner(f"正在识别 {len(df_up)} 条文本..."):
                             st.session_state["emo_batch_df"] = pd.DataFrame(
-                                predictor.predict_batch(df_up["text"].tolist()))
+                                predict_batch_routed(df_up["text"].tolist(),
+                                                     model_type=batch_backend))
                 else:
                     st.error("CSV 文件必须包含 'text' 列")
 
@@ -344,8 +398,11 @@ def main():
                     '<div class="section-title"><span class="dot"></span>📑 预测明细</div>',
                     unsafe_allow_html=True,
                 )
+                show_cols = ["text", "emoji", "emotion_cn", "polarity", "confidence"]
+                if "reason" in df.columns:  # LoRA 生成理由
+                    show_cols.append("reason")
                 st.dataframe(
-                    df[["text", "emoji", "emotion_cn", "polarity", "confidence"]]
+                    df[show_cols]
                     .style.map(lambda v: f"color:{EMOTION_THEME.get(v, {}).get('main', '#374151')};font-weight:700;",
                                subset=["emotion_cn"]),
                     use_container_width=True, height=320,
